@@ -24,6 +24,7 @@ import './community-services/venmo';
 import './community-services/vk';
 import './community-services/wechat';
 import './community-services/line';
+import './community-services/stripe';
 
 Accounts.oauth.tryLinkAfterPopupClosed = function(credentialToken, callback) {
   const credentialSecret = OAuth._retrieveCredentialSecret(credentialToken);
