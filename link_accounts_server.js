@@ -12,14 +12,14 @@ Accounts.registerLoginHandler(function(options) {
     // the error in the pending credentials table, with a secret of
     // null. The client can call the login method with a secret of null
     // to retrieve the error.
-    credentialSecret: Match.OneOf(null, String)
+    credentialSecret: Match.OneOf(null, String),
   });
 
   const result = OAuth.retrieveCredential(options.link.credentialToken, options.link.credentialSecret);
   if (!result) {
     return {
       type: 'link',
-      error: new Meteor.Error(Accounts.LoginCancelledError.numericError, 'No matching link attempt found')
+      error: new Meteor.Error(Accounts.LoginCancelledError.numericError, 'No matching link attempt found'),
     };
   }
 
@@ -28,9 +28,9 @@ Accounts.registerLoginHandler(function(options) {
 });
 
 Meteor.methods({
-  cordovaGoogle: function(serviceName, serviceData) {
+  cordovaGoogle(serviceName, serviceData) {
     Accounts.LinkUserFromExternalService(serviceName, serviceData, {}); //passing empty object cause in any case it is not used
-  }
+  },
 });
 
 Accounts.LinkUserFromExternalService = function(serviceName, serviceData, options) {
@@ -69,7 +69,7 @@ Accounts.LinkUserFromExternalService = function(serviceName, serviceData, option
   //XXX maybe we can override this?
   if (user.services && user.services[serviceName] && user.services[serviceName].id !== serviceData.id) {
     return new Meteor.Error('User can link only one account to service: ' + serviceName);
-  } else {
+  } 
     const setAttrs = {};
     Object.keys(serviceData).forEach(key => {
       setAttrs['services.' + serviceName + '.' + key] = serviceData[key];
@@ -80,7 +80,7 @@ Accounts.LinkUserFromExternalService = function(serviceName, serviceData, option
       type: serviceName,
       userId: user._id
     };
-  }
+  
 };
 
 Accounts.unlinkService = function(userId, serviceName, cb) {
@@ -90,7 +90,7 @@ Accounts.unlinkService = function(userId, serviceName, cb) {
   }
   const user = Meteor.users.findOne({ _id: userId });
   if (serviceName === 'resume' || serviceName === 'password') {
-    throw new Meteor.Error('Internal services cannot be unlinked: ' + serviceName);
+    throw new Meteor.Error(`Internal services cannot be unlinked: ${  serviceName}`);
   }
 
   if (user.services[serviceName]) {
@@ -105,3 +105,13 @@ Accounts.unlinkService = function(userId, serviceName, cb) {
     throw new Meteor.Error(500, 'no service');
   }
 };
+
+Meteor.methods({
+  '_accounts/unlink/service' (serviceName) {
+    check(serviceName, String);
+    if (!this.userId) {
+      throw new Meteor.Error('not-authorized');
+    }
+    Accounts.unlinkService(this.userId, serviceName);
+  },
+});
